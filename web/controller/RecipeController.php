@@ -167,7 +167,7 @@ function getRecipeById($pdo, $id) {
 
 // Recipe Update Controller
 function updateRecipe($pdo, $id) {
-    try{
+    try {
         // Check if user is logged in
         verify_jwt_session();
 
@@ -194,7 +194,17 @@ function updateRecipe($pdo, $id) {
         // Normalize vegetarian value to 0 or 1
         $vegetarian = $vegetarian ? 1 : 0;
 
-        // Validate and sanitize boolean properly
+        // Check if the recipe exists
+        $checkStmt = $pdo->prepare("SELECT id FROM recipes WHERE id = :id");
+        $checkStmt->execute(['id' => $id]);
+
+        if ($checkStmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Recipe not found']);
+            return;
+        }
+
+        // Proceed with update
         $stmt = $pdo->prepare("
             UPDATE recipes SET 
                 name = :name,
@@ -214,7 +224,7 @@ function updateRecipe($pdo, $id) {
         // delete if updated recipe exists in cache
         global $redis;
         $redis->del("recipes:id:$id");
-        
+
         // Clear cache for all recipes
         clear_cache();
 

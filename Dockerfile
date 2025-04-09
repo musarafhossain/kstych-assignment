@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 RUN pecl install redis \
     && docker-php-ext-enable redis
 
-# Install Composer
+# ---------- INSTALL COMPOSER MANUALLY ----------
 RUN curl -sS https://getcomposer.org/installer | php && \
     mv composer.phar /usr/local/bin/composer
 
@@ -25,7 +25,7 @@ WORKDIR /var/www/html
 # Copy application code
 COPY . /var/www/html
 
-# Install dependencies using Composer ( JWT)
+# Install dependencies using Composer (including JWT)
 RUN composer require firebase/php-jwt
 
 # Copy default NGINX config

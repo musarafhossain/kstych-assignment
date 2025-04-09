@@ -1,0 +1,55 @@
+# Composer dependencies
+/vendor/
+
+# PHPStorm and other IDEs
+/.idea/
+/*.sublime-project
+/*.sublime-workspace
+/.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# PHPUnit test results
+.phpunit.result.cache
+
+# Logs and cache
+*.log
+/cache/
+/logs/
+
+# Environment files
+.env
+.env.*
+
+# Coverage reports
+coverage/
+
+# Ignore node dependencies (if using frontend tooling)
+/node_modules/
+
+# Ignore Docker artifacts
+docker-compose.override.yml
+.env.docker
+.docker/
+
+# Ignore build outputs
+/build/
+/dist/
+
+# Ignore database dumps
+*.sql
+*.sqlite
+
+# Redis cache (if applicable)
+dump.rdb
+appendonly.aof
+
+# Ignore temporary files
+*.bak
+*.tmp
+*.swp
+*.swo
+
+composer.lock

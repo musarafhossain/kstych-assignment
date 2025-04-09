@@ -1,0 +1,35 @@
+version: '2'
+services:
+
+    # Application container
+    php:
+        build: .
+        restart: unless-stopped
+        volumes:
+            - ./:/server/http
+        ports:
+            - "8080:80"
+            #- "443:443"
+        links:
+            - postgres
+            - redis
+        environment:
+            DEBUG: 'true'
+
+    postgres:
+        image: onjin/alpine-postgres:9.5
+        restart: unless-stopped
+        ports:
+            - "5432:5432"
+        environment:
+            LC_ALL: C.UTF-8
+            POSTGRES_USER: hellofresh
+            POSTGRES_PASSWORD: hellofresh
+            POSTGRES_DB: hellofresh
+
+    redis:
+        image: sickp/alpine-redis:3.2.2
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+

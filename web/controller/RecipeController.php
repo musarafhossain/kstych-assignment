@@ -241,3 +241,57 @@ function deleteRecipe($pdo, $id) {
         echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
     }
 }
+
+// Recipe Rating Controller
+function rateRecipe($pdo, $id) {
+    try{
+        // Get the request body
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        //check rating value validity
+        if (!isset($data['rating']) || !is_numeric($data['rating']) || $data['rating'] < 1 || $data['rating'] > 5) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Rating must be a number between 1 and 5']);
+            return;
+        }
+
+        // Get the recipe from the database
+        $stmt = $pdo->prepare("SELECT rating, rating_count FROM recipes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $recipe = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Check if recipe exists
+        if (!$recipe) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Recipe not found']);
+            return;
+        }
+
+        // Check if user has already rated the recipe
+        $currentRating = floatval($recipe['rating']);
+        $count = intval($recipe['rating_count']);
+        $newRating = ($currentRating * $count + $data['rating']) / ($count + 1);
+
+        // Update the recipe rating in the database
+        $stmt = $pdo->prepare("UPDATE recipes SET rating = :rating, rating_count = :count WHERE id = :id");
+        $stmt->execute([
+            'rating' => $newRating,
+            'count' => $count + 1,
+            'id' => $id
+        ]);
+
+        // Clear cache for the updated recipe and global recipe list
+        //global $redis;
+        //$redis->del("recipes:id:$id");
+        //clear_cache();
+
+        // Return success response
+        echo json_encode(['message' => 'Rating added', 'new_rating' => round($newRating, 2)]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
+    }
+}

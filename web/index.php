@@ -51,8 +51,7 @@ if ($method === 'GET' && $uri[0] === 'recipes' && count($uri) === 1) {
     is_numeric($uri[1]) &&
     $uri[2] === 'rating'
 ) {
-    //rateRecipe($pdo, intval($uri[1]));
-    echo "Rate recipe logic here";
+    rateRecipe($pdo, intval($uri[1]));
 } else {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed or bad request']);

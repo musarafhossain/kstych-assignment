@@ -42,8 +42,7 @@ if ($method === 'GET' && $uri[0] === 'recipes' && count($uri) === 1) {
     updateRecipe($pdo, intval($uri[1]));
 
 } elseif ($method === 'DELETE' && $uri[0] === 'recipes' && isset($uri[1]) && is_numeric($uri[1])) {
-    //deleteRecipe($pdo, intval($uri[1]));
-    echo "Delete recipe logic here";
+    deleteRecipe($pdo, intval($uri[1]));
 
 } elseif (
     $method === 'POST' &&

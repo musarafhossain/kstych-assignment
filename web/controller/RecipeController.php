@@ -196,3 +196,48 @@ function updateRecipe($pdo, $id) {
         echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
     }
 }
+
+// Recipe Delete Controller
+function deleteRecipe($pdo, $id) {
+    try {
+        // Check if user is logged in
+        // verify_jwt_session();
+
+        // Validate ID
+        if (!is_numeric($id)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid recipe ID']);
+            return;
+        }
+
+        // Check if the recipe exists before deleting
+        $checkStmt = $pdo->prepare("SELECT id FROM recipes WHERE id = :id");
+        $checkStmt->execute(['id' => $id]);
+
+        if ($checkStmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Recipe not found']);
+            return;
+        }
+
+        // Delete the recipe
+        $stmt = $pdo->prepare("DELETE FROM recipes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+
+        // Clear cache for the deleted recipe and global recipe list
+        /*global $redis;
+        if (isset($redis)) {
+            $redis->del("recipes:id:$id");
+        }
+        clear_cache();*/
+
+        http_response_code(200);
+        echo json_encode(['message' => 'Recipe deleted successfully']);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
+    }
+}

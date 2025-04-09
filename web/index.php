@@ -30,12 +30,10 @@ if ($uriPath === '/logout' && $method === 'GET') {
 
 // Handle api routes
 if ($method === 'GET' && $uri[0] === 'recipes' && count($uri) === 1) {
-    //getRecipes($pdo);
-    echo "Get all recipes logic here";
+    getRecipes($pdo);
 
 } elseif ($method === 'POST' && $uri[0] === 'recipes' && count($uri) === 1) {
     addRecipe($pdo);
-    //echo "Add recipe logic here";
 
 } elseif ($method === 'GET' && $uri[0] === 'recipes' && isset($uri[1]) && is_numeric($uri[1])) {
     //getRecipeById($pdo, intval($uri[1]));

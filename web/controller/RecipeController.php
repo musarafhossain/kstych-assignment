@@ -1,4 +1,46 @@
 <?php
+// Get Recipe Controller
+function getRecipes($pdo) {
+    try{
+        // Get the search query from the URL (if any)
+        // Example: /recipes?search=chicken
+        $search = $_GET['search'] ?? '';
+        $cacheKey = $search ? "recipes:search:" . strtolower($search) : "recipes:all";
+
+        // Check if the cache exists
+        /*$cached = cache_get($cacheKey);
+        if ($cached) {
+            echo $cached;
+            return;
+        }*/
+
+        // If not cached, fetch from the database
+        if ($search) {
+            $stmt = $pdo->prepare("SELECT * FROM recipes WHERE LOWER(name) LIKE LOWER(:search)");
+            $stmt->execute(['search' => "%$search%"]);
+        } else {
+            $stmt = $pdo->query("SELECT * FROM recipes");
+        }
+
+        // Fetch all recipes
+        $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $json = json_encode($recipes);
+
+        // Set the cache
+        //cache_set($cacheKey, $json, 300); // Cache for 5 min
+
+        // Return the data as JSON
+        http_response_code(200);
+        echo $json;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
+    }
+}
+
 // Recipe Add Controller
 function addRecipe($pdo) {
     try {
@@ -37,7 +79,7 @@ function addRecipe($pdo) {
             $vegetarian
         ]);
 
-        // Optionally clear cache
+        // Clear cache
         // clear_cache();
 
         // Return success response

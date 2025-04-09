@@ -44,7 +44,7 @@ function getRecipes($pdo) {
 function addRecipe($pdo) {
     try {
         // Check if user is logged in
-        // verify_jwt_session();
+        verify_jwt_session();
 
         // Get the request body
         $data = json_decode(file_get_contents('php://input'), true);
@@ -137,7 +137,7 @@ function getRecipeById($pdo, $id) {
 function updateRecipe($pdo, $id) {
     try{
         // Check if user is logged in
-        //verify_jwt_session();
+        verify_jwt_session();
 
         // Get the request body
         $data = json_decode(file_get_contents("php://input"), true);
@@ -201,7 +201,7 @@ function updateRecipe($pdo, $id) {
 function deleteRecipe($pdo, $id) {
     try {
         // Check if user is logged in
-        // verify_jwt_session();
+        verify_jwt_session();
 
         // Validate ID
         if (!is_numeric($id)) {

@@ -1,9 +1,13 @@
 <?php
+// Start a session to manage user authentication
+session_start();
 
 // Include database connection
 require_once 'db/db.php';
 // Include Recipe Controller
 require_once 'controller/RecipeController.php';
+// Include Auth Service
+require_once 'services/auth.php';
 
 //Add header
 header('Content-Type: application/json');
@@ -17,14 +21,12 @@ $uri = explode('/', trim($uriPath, '/'));
 
 // Handle login/logout routes
 if ($uriPath === '/login' && $method === 'POST') {
-    //login();
-    echo "Login logic here";
+    login();
     exit;
 }
 
 if ($uriPath === '/logout' && $method === 'GET') {
-    //logout();
-    echo "Logout logic here";
+    logout();
     exit;
 }
 

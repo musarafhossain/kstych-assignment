@@ -1,5 +1,8 @@
 <?php
 
+// Include database connection
+require_once 'db/db.php';
+
 // Parse URI path only (ignore query strings)
 $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

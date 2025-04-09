@@ -2,6 +2,11 @@
 
 // Include database connection
 require_once 'db/db.php';
+// Include Recipe Controller
+require_once 'controller/RecipeController.php';
+
+//Add header
+header('Content-Type: application/json');
 
 // Parse URI path only (ignore query strings)
 $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -29,8 +34,8 @@ if ($method === 'GET' && $uri[0] === 'recipes' && count($uri) === 1) {
     echo "Get all recipes logic here";
 
 } elseif ($method === 'POST' && $uri[0] === 'recipes' && count($uri) === 1) {
-    //addRecipe($pdo);
-    echo "Add recipe logic here";
+    addRecipe($pdo);
+    //echo "Add recipe logic here";
 
 } elseif ($method === 'GET' && $uri[0] === 'recipes' && isset($uri[1]) && is_numeric($uri[1])) {
     //getRecipeById($pdo, intval($uri[1]));

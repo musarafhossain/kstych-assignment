@@ -36,8 +36,7 @@ if ($method === 'GET' && $uri[0] === 'recipes' && count($uri) === 1) {
     addRecipe($pdo);
 
 } elseif ($method === 'GET' && $uri[0] === 'recipes' && isset($uri[1]) && is_numeric($uri[1])) {
-    //getRecipeById($pdo, intval($uri[1]));
-    echo "Get recipe by ID logic here";
+    getRecipeById($pdo, intval($uri[1]));
 
 } elseif ($method === 'PUT' && $uri[0] === 'recipes' && isset($uri[1]) && is_numeric($uri[1])) {
     //updateRecipe($pdo, intval($uri[1]));

@@ -30,7 +30,6 @@ function getRecipes($pdo) {
         //cache_set($cacheKey, $json, 300); // Cache for 5 min
 
         // Return the data as JSON
-        http_response_code(200);
         echo $json;
     } catch (PDOException $e) {
         http_response_code(500);
@@ -93,3 +92,45 @@ function addRecipe($pdo) {
         echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
     }
 }
+
+// Get Recipe by ID Controller
+function getRecipeById($pdo, $id) {
+    try{
+        // Get the data from cache
+        //$cacheKey = "recipes:id:$id";
+
+        // Check if the cache exists
+        /*$cached = cache_get($cacheKey);
+        if ($cached) {
+            echo $cached;
+            return;
+        }*/
+
+        // If not cached, fetch from the database
+        $stmt = $pdo->prepare("SELECT * FROM recipes WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $recipe = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Check if recipe exists
+        if ($recipe) {
+            $json = json_encode($recipe);
+            
+            // Set the cache
+            //cache_set($cacheKey, $json, 300); // Cache for 5 min
+            
+            echo $json;
+        } else {
+            // Recipe not found, return 404
+            http_response_code(404);
+            echo json_encode(['error' => 'Recipe not found']);
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Internal server error: ' . $e->getMessage()]);
+    }
+}
+
+// Recipe Update Controller

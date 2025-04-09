@@ -1,21 +1,35 @@
-FROM quay.io/hellofresh/php70:7.1
+FROM php:8.1-fpm
 
-# Adds nginx configurations
-ADD ./docker/nginx/default.conf   /etc/nginx/sites-available/default
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    nginx \
+    git \
+    unzip \
+    curl \
+    libpq-dev \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install pdo pdo_pgsql zip
 
-# Environment variables to PHP-FPM
-RUN sed -i -e "s/;clear_env\s*=\s*no/clear_env = no/g" /etc/php/7.1/fpm/pool.d/www.conf
+# Install and enable Redis extension
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
-# Set apps home directory.
-ENV APP_DIR /server/http
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer
 
-# Adds the application code to the image
-ADD . ${APP_DIR}
+# Set the working directory
+WORKDIR /var/www/html
 
-# Define current working directory.
-WORKDIR ${APP_DIR}
+# Copy application code
+COPY . /var/www/html
 
-# Cleanup
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install dependencies using Composer ( JWT)
+RUN composer require firebase/php-jwt
 
+# Copy default NGINX config
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Expose ports
 EXPOSE 80

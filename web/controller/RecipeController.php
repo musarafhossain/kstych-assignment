@@ -4,35 +4,64 @@ require_once 'services/redis.php';
 
 // Get Recipe Controller
 function getRecipes($pdo) {
-    try{
-        // Get the search query from the URL (if any)
-        // Example: /recipes?search=chicken
+    try {
+        // Get query parameters
         $search = $_GET['search'] ?? '';
-        $cacheKey = $search ? "recipes:search:" . strtolower($search) : "recipes:all";
+        $page = isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
+        $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) && $_GET['limit'] > 0 ? (int)$_GET['limit'] : 10;
+        $offset = ($page - 1) * $limit;
 
-        // Check if the cache exists
+        $cacheKey = $search 
+            ? "recipes:search:" . strtolower($search) . ":page:$page:limit:$limit" 
+            : "recipes:all:page:$page:limit:$limit";
+
+        // Try cache
         $cached = cache_get($cacheKey);
         if ($cached) {
             echo $cached;
             return;
         }
 
-        // If not cached, fetch from the database
+        // Total count for pagination metadata
         if ($search) {
-            $stmt = $pdo->prepare("SELECT * FROM recipes WHERE LOWER(name) LIKE LOWER(:search)");
-            $stmt->execute(['search' => "%$search%"]);
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM recipes WHERE LOWER(name) LIKE LOWER(:search)");
+            $countStmt->execute(['search' => "%$search%"]);
         } else {
-            $stmt = $pdo->query("SELECT * FROM recipes");
+            $countStmt = $pdo->query("SELECT COUNT(*) FROM recipes");
+        }
+        $total = $countStmt->fetchColumn();
+
+        // Get paginated recipes
+        if ($search) {
+            $stmt = $pdo->prepare("SELECT * FROM recipes WHERE LOWER(name) LIKE LOWER(:search) LIMIT :limit OFFSET :offset");
+            $stmt->bindValue(':search', "%$search%", PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM recipes LIMIT :limit OFFSET :offset");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
         }
 
-        // Fetch all recipes
         $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $json = json_encode($recipes);
 
-        // Set the cache
-        cache_set($cacheKey, $json, 300); // Cache for 5 min
+        $response = [
+            'meta' => [
+                'total' => (int)$total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit),
+            ],
+            'data' => $recipes
+        ];
 
-        // Return the data as JSON
+        $json = json_encode($response);
+
+        // Set cache
+        cache_set($cacheKey, $json, 300);
+
         echo $json;
     } catch (PDOException $e) {
         http_response_code(500);
@@ -273,7 +302,7 @@ function rateRecipe($pdo, $id) {
         // Check if user has already rated the recipe
         $currentRating = floatval($recipe['rating']);
         $count = intval($recipe['rating_count']);
-        $newRating = ($currentRating * $count + $data['rating']) / ($count + 1);
+        $newRating = round(($currentRating * $count + $data['rating']) / ($count + 1), 2);
 
         // Update the recipe rating in the database
         $stmt = $pdo->prepare("UPDATE recipes SET rating = :rating, rating_count = :count WHERE id = :id");

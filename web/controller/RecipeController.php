@@ -1,4 +1,7 @@
 <?php
+// Inclde redis connection
+require_once 'services/redis.php';
+
 // Get Recipe Controller
 function getRecipes($pdo) {
     try{
@@ -8,11 +11,11 @@ function getRecipes($pdo) {
         $cacheKey = $search ? "recipes:search:" . strtolower($search) : "recipes:all";
 
         // Check if the cache exists
-        /*$cached = cache_get($cacheKey);
+        $cached = cache_get($cacheKey);
         if ($cached) {
             echo $cached;
             return;
-        }*/
+        }
 
         // If not cached, fetch from the database
         if ($search) {
@@ -27,7 +30,7 @@ function getRecipes($pdo) {
         $json = json_encode($recipes);
 
         // Set the cache
-        //cache_set($cacheKey, $json, 300); // Cache for 5 min
+        cache_set($cacheKey, $json, 300); // Cache for 5 min
 
         // Return the data as JSON
         echo $json;
@@ -79,7 +82,7 @@ function addRecipe($pdo) {
         ]);
 
         // Clear cache
-        // clear_cache();
+        clear_cache();
 
         // Return success response
         http_response_code(201);
@@ -97,14 +100,14 @@ function addRecipe($pdo) {
 function getRecipeById($pdo, $id) {
     try{
         // Get the data from cache
-        //$cacheKey = "recipes:id:$id";
+        $cacheKey = "recipes:id:$id";
 
         // Check if the cache exists
-        /*$cached = cache_get($cacheKey);
+        $cached = cache_get($cacheKey);
         if ($cached) {
             echo $cached;
             return;
-        }*/
+        }
 
         // If not cached, fetch from the database
         $stmt = $pdo->prepare("SELECT * FROM recipes WHERE id = :id");
@@ -116,7 +119,7 @@ function getRecipeById($pdo, $id) {
             $json = json_encode($recipe);
             
             // Set the cache
-            //cache_set($cacheKey, $json, 300); // Cache for 5 min
+            cache_set($cacheKey, $json, 300); // Cache for 5 min
             
             echo $json;
         } else {
@@ -180,11 +183,11 @@ function updateRecipe($pdo, $id) {
         ]);
 
         // delete if updated recipe exists in cache
-        //global $redis;
-        //$redis->del("recipes:id:$id");
+        global $redis;
+        $redis->del("recipes:id:$id");
         
         // Clear cache for all recipes
-        //clear_cache();
+        clear_cache();
 
         // Return success response
         echo json_encode(['message' => 'Recipe updated']);
@@ -225,11 +228,11 @@ function deleteRecipe($pdo, $id) {
         $stmt->execute(['id' => $id]);
 
         // Clear cache for the deleted recipe and global recipe list
-        /*global $redis;
+        global $redis;
         if (isset($redis)) {
             $redis->del("recipes:id:$id");
         }
-        clear_cache();*/
+        clear_cache();
 
         http_response_code(200);
         echo json_encode(['message' => 'Recipe deleted successfully']);
@@ -281,9 +284,9 @@ function rateRecipe($pdo, $id) {
         ]);
 
         // Clear cache for the updated recipe and global recipe list
-        //global $redis;
-        //$redis->del("recipes:id:$id");
-        //clear_cache();
+        global $redis;
+        $redis->del("recipes:id:$id");
+        clear_cache();
 
         // Return success response
         echo json_encode(['message' => 'Rating added', 'new_rating' => round($newRating, 2)]);
